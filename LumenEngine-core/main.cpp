@@ -12,15 +12,34 @@
 #include "Glad\glad.h"
 #include <string>
 #include <fstream>
+#include "Vec2.h"
 #include "Vec3.h"
 #include "Vec4.h"
 #include "Matrix4x4.h"
 #include "LeMath.h"
 
+#include <fstream>
+
 struct Vertex {
-	Vec4 pos;
-	Vec4 col;
-	Vertex(Vec4 _pos, Vec4 _col) : pos(_pos), col(_col){}
+	Vec3 pos;
+	Vec3 norms;
+	Vec2 uvs;
+	Vertex(Vec4 _pos, Vec4 _norms, Vec2 _uvs) : pos(_pos), norms(_norms), uvs(_uvs){}
+	Vertex() {
+		
+	}
+};
+
+struct MeshForNow {
+	unsigned int numOfVerts;
+	Vertex *vertices;
+	unsigned int numOfIndices;
+	unsigned int *triIndices;
+
+	~MeshForNow() {
+		delete[] vertices;
+		delete[] triIndices;
+	}
 };
 
 static const int SCREEN_FULLSCREEN = 0;
@@ -29,9 +48,12 @@ static const int SCREEN_HEIGHT = 720;
 static SDL_Window *window = nullptr;
 static SDL_GLContext mainContext;
 
+static MeshForNow *meshYo = nullptr;
+
 static GLuint mainProgram;
 
-GLuint bufferName;
+GLuint vertexBuffer;
+GLuint indexBuffer;
 
 
 static void SDLDie(const char *message) {
@@ -60,6 +82,40 @@ static GLchar *GetShader(const GLchar *path) {
 	strcpy_s(returnVal, in.length() + 1, in.c_str());
 	printf(returnVal);
 	return returnVal;
+}
+
+static MeshForNow *GetMesh(const GLchar *path) {
+	std::ifstream input(path, std::ios_base::binary);
+
+	if (!input.is_open())
+		return nullptr;
+
+	MeshForNow *returnMesh = new MeshForNow();
+
+	unsigned int tempInt = 0;
+	input.read((char*)&tempInt, sizeof(unsigned int));
+	char nameBuffer[256];
+	input.read(nameBuffer, tempInt);
+
+	input.read((char*)&tempInt, sizeof(unsigned int));
+	for (int i = 0; i < tempInt; ++i) {
+		unsigned int tempTexNameLen;
+		input.read((char*)&tempTexNameLen, sizeof(unsigned int));
+		input.read(nameBuffer, tempTexNameLen);
+	}
+
+	input.read((char*)&tempInt, sizeof(unsigned int));
+	returnMesh->vertices = new Vertex[tempInt];
+	input.read((char*)returnMesh->vertices, sizeof(Vertex) * tempInt);
+	returnMesh->numOfVerts = tempInt;
+
+	input.read((char*)&tempInt, sizeof(unsigned int));
+	tempInt *= 3;
+	returnMesh->triIndices = new unsigned int[tempInt];
+	input.read((char*)returnMesh->triIndices, sizeof(unsigned int) * tempInt);
+	returnMesh->numOfIndices = tempInt;
+
+	return returnMesh;
 }
 
 void InitScreen(const char *caption) {
@@ -108,12 +164,15 @@ void InitScreen(const char *caption) {
 GLuint vao;
 
 GLuint CreateProgram() {
+
+	meshYo = GetMesh("../bench.mesh");
+
 	GLuint vertexShaderID;
 	/*GLuint tessControlID;
 	GLuint tessEvalID;*/
 	GLuint fragmentShaderID;
 	GLuint program;
-	const Vec4 data[]{
+	/*const Vec4 data[]{
 		
 		Vec4(0.25f,  0.25f, -0.25f, 1.0f),
 		Vec4(0.25f, -0.25f, -0.25f, 1.0f),
@@ -164,30 +223,37 @@ GLuint CreateProgram() {
 		Vec4(-0.25f,  0.25f, 0.25f, 1.0f),
 		Vec4(-0.25f, -0.25f, 0.25f, 1.0f),
 		Vec4(0.25f, -0.25f, 0.25f, 1.0f),
-	};
+	};*/
 
 	
 	glCreateVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 
-	glCreateBuffers(1, &bufferName);
-	//glBindBuffer(GL_ARRAY_BUFFER, bufferName);
-	glNamedBufferData(bufferName, sizeof(data), data, GL_STATIC_DRAW);
+	glCreateBuffers(1, &vertexBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * meshYo->numOfVerts, meshYo->vertices, GL_STATIC_DRAW);
 	//glNamedBufferSubData(bufferName, 0, sizeof(data), data);
 
-	glVertexArrayAttribBinding(vao, 0, 0);
-	glVertexArrayAttribFormat(vao, 0, 4, GL_FLOAT, GL_FALSE, 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
+	/*glVertexArrayAttribBinding(vao, 0, 0);
+	glVertexArrayAttribFormat(vao, 0, 4, GL_FLOAT, GL_FALSE, 0);*/
 	glEnableVertexAttribArray(0);
+
+	glCreateBuffers(1, &indexBuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * meshYo->numOfIndices, meshYo->triIndices, GL_STATIC_DRAW);
 
 	/*glVertexArrayAttribBinding(vao, 1, 0);
 	glVertexArrayAttribFormat(vao, 1, 4, GL_FLOAT, GL_FALSE, offsetof(Vertex, col));
 	glEnableVertexAttribArray(1);*/
 	//glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
 
-	glVertexArrayVertexBuffer(vao, 0, bufferName, 0, sizeof(Vec4));
+	//glVertexArrayVertexBuffer(vao, 0, bufferName, 0, sizeof(Vec4));
 
 
 	static const GLchar *vertexShader = GetShader("VertexShader.vs");
+
+	
 
 	/*[]{
 		"#version 450 core  \n"
@@ -320,7 +386,7 @@ static const GLchar *tessControl[]{
 	glDeleteShader(fragmentShaderID);
 
 	glEnable(GL_CULL_FACE);
-	// glFrontFace(GL_CW);
+	 //glFrontFace(GL_CW);
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
@@ -350,7 +416,7 @@ void Render(Uint32 time) {
 	LeMath::CreatePerspectiveMatrix(50.f, (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.f, &projMatrix);
 	//LeMath::CreateFrustumMatrix(100.f, 100.f, 100.f, 100.f, 0.1f, 1000.f, &projMatrix);
 	//LeMath::CreateOrthoMatrix(200, 200, 200, 200, 0.1f, 1000, &projMatrix);
-	Matrix4x4 posMatrix = LeMath::CreateTranslationMatrix(0, 0, -4) * LeMath::CreateTranslationMatrix(sinf(2.1f * f) * 0.5f, cosf(1.7f * f) * 0.5f, sinf(1.3f * f) * cosf(1.5f * f) * 2.f) /** LeMath::CreateRotationMatrix(EAxis::y, seconds)*/ * LeMath::CreateRotationMatrix(EAxis::x, seconds);
+	Matrix4x4 posMatrix = LeMath::CreateTranslationMatrix(0, 0, -20) * LeMath::CreateTranslationMatrix(sinf(2.1f * f) * 0.5f, cosf(1.7f * f) * 0.5f, sinf(1.3f * f) * cosf(1.5f * f) * 2.f) * LeMath::CreateRotationMatrix(EAxis::y, secondsish) * LeMath::CreateRotationMatrix(EAxis::x, seconds);
 
 
 
@@ -358,7 +424,7 @@ void Render(Uint32 time) {
 	glUniformMatrix4fv(glGetUniformLocation(mainProgram, "tranMat"), 1, GL_FALSE, posMatrix.GetArray());
 
 	glBindVertexArray(vao);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glDrawElements(GL_TRIANGLES, meshYo->numOfIndices, GL_UNSIGNED_INT, 0);
 }
 
 int main(int argv, char** argc)
