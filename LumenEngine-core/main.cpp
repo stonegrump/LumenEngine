@@ -14,6 +14,8 @@
 #include <fstream>
 #include "Vec3.h"
 #include "Vec4.h"
+#include "Matrix4x4.h"
+#include "LeMath.h"
 
 struct Vertex {
 	Vec4 pos;
@@ -111,11 +113,57 @@ GLuint CreateProgram() {
 	GLuint tessEvalID;*/
 	GLuint fragmentShaderID;
 	GLuint program;
-	const Vertex data[]{
-		Vertex(Vec4(-0.25f, -0.25f, 0.5f, 1.0f), Vec4(1, 0, 0, 1)),
-		Vertex(Vec4( 0.25f, -0.25f, 0.5f, 1.0f), Vec4(0, 1, 0, 1)),
-		Vertex(Vec4(-0.25f,  0.25f, 0.5f, 1.0f), Vec4(0, 0, 1, 1)),
-		Vertex(Vec4( 0.25f,  0.25f, 0.5f, 1.0f), Vec4(1, 1, 1, 1))
+	const Vec4 data[]{
+		
+		Vec4(0.25f,  0.25f, -0.25f, 1.0f),
+		Vec4(0.25f, -0.25f, -0.25f, 1.0f),
+		Vec4(-0.25f, -0.25f, -0.25f, 1.0f),
+
+		Vec4(-0.25f, -0.25f, -0.25f, 1.0f),
+		Vec4(-0.25f,  0.25f, -0.25f, 1.0f),
+		Vec4(0.25f,  0.25f, -0.25f, 1.0f),
+
+		Vec4(-0.25f,  0.25f, -0.25f, 1.0f),
+		Vec4(-0.25f, -0.25f, -0.25f, 1.0f),
+		Vec4(-0.25f, -0.25f,  0.25f, 1.0f),
+
+		Vec4(-0.25f, -0.25f,  0.25f, 1.0f),
+		Vec4(-0.25f,  0.25f,  0.25f, 1.0f),
+		Vec4(-0.25f,  0.25f, -0.25f, 1.0f),
+
+		Vec4(0.25f,  0.25f,  0.25f, 1.0f), 
+		Vec4(0.25f, -0.25f,  0.25f, 1.0f), 
+		Vec4(0.25f, -0.25f, -0.25f, 1.0f), 
+
+		Vec4(0.25f, -0.25f, -0.25f, 1.0f), 
+		Vec4(0.25f,  0.25f, -0.25f, 1.0f), 
+		Vec4(0.25f,  0.25f,  0.25f, 1.0f), 
+
+
+		Vec4(-0.25f,  -0.25f, 0.25f, 1.0f),
+		Vec4(-0.25f,  -0.25f,  -0.25f, 1.0f),
+		Vec4(0.25f,  -0.25f,  -0.25f, 1.0f),
+
+		Vec4(0.25f,  -0.25f,  -0.25f, 1.0f),
+		Vec4(0.25f,  -0.25f, 0.25f, 1.0f),
+		Vec4(-0.25f,  -0.25f, 0.25f, 1.0f),
+
+		Vec4( 0.25f,  0.25f, -0.25f, 1.0f), 
+		Vec4(-0.25f,  0.25f, -0.25f, 1.0f), 
+		Vec4(-0.25f,  0.25f,  0.25f, 1.0f), 
+
+		Vec4(-0.25f,  0.25f,  0.25f, 1.0f),
+		Vec4(0.25f,  0.25f,  0.25f, 1.0f),
+		Vec4(0.25f,  0.25f, -0.25f, 1.0f),
+
+
+		Vec4(0.25f, -0.25f, 0.25f, 1.0f),
+		Vec4(0.25f,  0.25f, 0.25f, 1.0f),
+		Vec4(-0.25f, 0.25f, 0.25f, 1.0f),
+
+		Vec4(-0.25f,  0.25f, 0.25f, 1.0f),
+		Vec4(-0.25f, -0.25f, 0.25f, 1.0f),
+		Vec4(0.25f, -0.25f, 0.25f, 1.0f),
 	};
 
 	
@@ -128,15 +176,15 @@ GLuint CreateProgram() {
 	//glNamedBufferSubData(bufferName, 0, sizeof(data), data);
 
 	glVertexArrayAttribBinding(vao, 0, 0);
-	glVertexArrayAttribFormat(vao, 0, 4, GL_FLOAT, GL_FALSE, offsetof(Vertex, pos));
+	glVertexArrayAttribFormat(vao, 0, 4, GL_FLOAT, GL_FALSE, 0);
 	glEnableVertexAttribArray(0);
 
-	glVertexArrayAttribBinding(vao, 1, 0);
+	/*glVertexArrayAttribBinding(vao, 1, 0);
 	glVertexArrayAttribFormat(vao, 1, 4, GL_FLOAT, GL_FALSE, offsetof(Vertex, col));
-	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(1);*/
 	//glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
 
-	glVertexArrayVertexBuffer(vao, 0, bufferName, 0, sizeof(Vertex));
+	glVertexArrayVertexBuffer(vao, 0, bufferName, 0, sizeof(Vec4));
 
 
 	static const GLchar *vertexShader = GetShader("VertexShader.vs");
@@ -242,13 +290,11 @@ static const GLchar *tessControl[]{
 	};*/
 	program = glCreateProgram();
 
-	if (vertexShader) {
 		vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
 		glShaderSource(vertexShaderID, 1, &vertexShader, nullptr);
 		glCompileShader(vertexShaderID);
 		glAttachShader(program, vertexShaderID);
 		glDeleteShader(vertexShaderID);
-	}
 
 	/*
 	//tessControlID = glCreateShader(GL_TESS_CONTROL_SHADER);
@@ -272,6 +318,13 @@ static const GLchar *tessControl[]{
 	glLinkProgram(program);
 
 	glDeleteShader(fragmentShaderID);
+
+	glEnable(GL_CULL_FACE);
+	// glFrontFace(GL_CW);
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+
 	return program;
 }
 
@@ -279,21 +332,33 @@ bool keypressed = false;
 
 void Render(Uint32 time) {
 
+	static float one = 1.0f;
+
 	float seconds = ((float)time / 1000.0f);
 	float secondsish = ((float)time / 500.0f);
 	const GLfloat color[]{ sin(secondsish) * 0.25f + 0.1f, sin(seconds) * 0.25f + 0.1f, cos(seconds) * 0.25f + 0.1f, 1.f };
 	glClearBufferfv(GL_COLOR, 0, color);
+	glClearBufferfv(GL_DEPTH, 0, &one);
 
 	GLfloat offset[]{ sin(seconds) * 0.5f, cos(seconds) * 0.5f, 0.f, 0.f };
 	GLfloat triColor[]{ 1.f, 1.f, 1.f, 0.f };
 
 	glUseProgram(mainProgram);
 
-	//glVertexAttrib4fv(1, offset);
-	//glVertexAttrib4fv(2, triColor);
+	float f = seconds * ((float)LePI * 0.1f);
+	Matrix4x4 projMatrix;
+	LeMath::CreatePerspectiveMatrix(50.f, (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.f, &projMatrix);
+	//LeMath::CreateFrustumMatrix(100.f, 100.f, 100.f, 100.f, 0.1f, 1000.f, &projMatrix);
+	//LeMath::CreateOrthoMatrix(200, 200, 200, 200, 0.1f, 1000, &projMatrix);
+	Matrix4x4 posMatrix = LeMath::CreateTranslationMatrix(0, 0, -4) * LeMath::CreateTranslationMatrix(sinf(2.1f * f) * 0.5f, cosf(1.7f * f) * 0.5f, sinf(1.3f * f) * cosf(1.5f * f) * 2.f) /** LeMath::CreateRotationMatrix(EAxis::y, seconds)*/ * LeMath::CreateRotationMatrix(EAxis::x, seconds);
+
+
+
+	glUniformMatrix4fv(glGetUniformLocation(mainProgram, "projMat"), 1, GL_FALSE, projMatrix.GetArray());
+	glUniformMatrix4fv(glGetUniformLocation(mainProgram, "tranMat"), 1, GL_FALSE, posMatrix.GetArray());
 
 	glBindVertexArray(vao);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
 int main(int argv, char** argc)

@@ -6,12 +6,12 @@
 #pragma region Constructors
 Matrix4x4::Matrix4x4()
 {
-	new float[16]{ 0 };
+	m_matrixArray = new float[16]{ 0 };
 }
 
 Matrix4x4::Matrix4x4(const float * const values)
 {
-	new float[16]{ 0 };
+	m_matrixArray = new float[16]{ 0 };
 	for (int i = 0; i < 16; ++i)
 		m_matrixArray[i] = values[i];
 }
@@ -28,14 +28,14 @@ Matrix4x4::Matrix4x4(float A00, float A10, float A20, float A30, float A01, floa
 
 Matrix4x4::Matrix4x4(const Matrix4x4 &other)
 {
-	new float[16]{ 0 };
+	m_matrixArray = new float[16]{ 0 };
 	for (int i = 0; i < 16; ++i)
 		m_matrixArray[i] = other.m_matrixArray[i];
 }
 
 Matrix4x4::Matrix4x4(const Matrix4x4 * const other)
 {
-	new float[16]{ 0 };
+	m_matrixArray = new float[16]{ 0 };
 	for (int i = 0; i < 16; ++i)
 		m_matrixArray[i] = other->m_matrixArray[i];
 }
@@ -145,6 +145,10 @@ float Matrix4x4::Det(int row, int col)
 	return    (temp[0] * (temp[4] * temp[8] - temp[5] * temp[7]))
 			- (temp[3] * (temp[1] * temp[8] - temp[2] * temp[7]))
 			+ (temp[6] * (temp[1] * temp[5] - temp[2] * temp[4]));
+}
+const float * const Matrix4x4::GetArray() const
+{
+	return m_matrixArray;
 }
 #pragma endregion
 

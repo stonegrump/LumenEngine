@@ -32,6 +32,7 @@ public:
 	bool Invert();
 	float Det();
 	float Det(int row, int col);
+	const float * const GetArray() const;
 
 
 	Matrix4x4 &operator=(const Matrix4x4 &other);
