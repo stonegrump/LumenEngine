@@ -158,8 +158,6 @@ void InitScreen(const char *caption) {
 	SDL_GetWindowSize(window, &w, &h);
 	glViewport(0, 0, w, h);
 	glClearColor(0.f, 0.5f, 1.f, 1.f);
-
-	//glClear(GL_COLOR_BUFFER_BIT);
 }
 GLuint vao;
 
@@ -172,59 +170,7 @@ GLuint CreateProgram() {
 	GLuint tessEvalID;*/
 	GLuint fragmentShaderID;
 	GLuint program;
-	/*const Vec4 data[]{
-		
-		Vec4(0.25f,  0.25f, -0.25f, 1.0f),
-		Vec4(0.25f, -0.25f, -0.25f, 1.0f),
-		Vec4(-0.25f, -0.25f, -0.25f, 1.0f),
-
-		Vec4(-0.25f, -0.25f, -0.25f, 1.0f),
-		Vec4(-0.25f,  0.25f, -0.25f, 1.0f),
-		Vec4(0.25f,  0.25f, -0.25f, 1.0f),
-
-		Vec4(-0.25f,  0.25f, -0.25f, 1.0f),
-		Vec4(-0.25f, -0.25f, -0.25f, 1.0f),
-		Vec4(-0.25f, -0.25f,  0.25f, 1.0f),
-
-		Vec4(-0.25f, -0.25f,  0.25f, 1.0f),
-		Vec4(-0.25f,  0.25f,  0.25f, 1.0f),
-		Vec4(-0.25f,  0.25f, -0.25f, 1.0f),
-
-		Vec4(0.25f,  0.25f,  0.25f, 1.0f), 
-		Vec4(0.25f, -0.25f,  0.25f, 1.0f), 
-		Vec4(0.25f, -0.25f, -0.25f, 1.0f), 
-
-		Vec4(0.25f, -0.25f, -0.25f, 1.0f), 
-		Vec4(0.25f,  0.25f, -0.25f, 1.0f), 
-		Vec4(0.25f,  0.25f,  0.25f, 1.0f), 
-
-
-		Vec4(-0.25f,  -0.25f, 0.25f, 1.0f),
-		Vec4(-0.25f,  -0.25f,  -0.25f, 1.0f),
-		Vec4(0.25f,  -0.25f,  -0.25f, 1.0f),
-
-		Vec4(0.25f,  -0.25f,  -0.25f, 1.0f),
-		Vec4(0.25f,  -0.25f, 0.25f, 1.0f),
-		Vec4(-0.25f,  -0.25f, 0.25f, 1.0f),
-
-		Vec4( 0.25f,  0.25f, -0.25f, 1.0f), 
-		Vec4(-0.25f,  0.25f, -0.25f, 1.0f), 
-		Vec4(-0.25f,  0.25f,  0.25f, 1.0f), 
-
-		Vec4(-0.25f,  0.25f,  0.25f, 1.0f),
-		Vec4(0.25f,  0.25f,  0.25f, 1.0f),
-		Vec4(0.25f,  0.25f, -0.25f, 1.0f),
-
-
-		Vec4(0.25f, -0.25f, 0.25f, 1.0f),
-		Vec4(0.25f,  0.25f, 0.25f, 1.0f),
-		Vec4(-0.25f, 0.25f, 0.25f, 1.0f),
-
-		Vec4(-0.25f,  0.25f, 0.25f, 1.0f),
-		Vec4(-0.25f, -0.25f, 0.25f, 1.0f),
-		Vec4(0.25f, -0.25f, 0.25f, 1.0f),
-	};*/
-
+	
 	
 	glCreateVertexArrays(1, &vao);
 	glBindVertexArray(vao);
@@ -245,136 +191,27 @@ GLuint CreateProgram() {
 
 	/*glVertexArrayAttribBinding(vao, 1, 0);
 	glVertexArrayAttribFormat(vao, 1, 4, GL_FLOAT, GL_FALSE, offsetof(Vertex, col));
-	glEnableVertexAttribArray(1);*/
-	//glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
 
-	//glVertexArrayVertexBuffer(vao, 0, bufferName, 0, sizeof(Vec4));
+	glVertexArrayVertexBuffer(vao, 0, bufferName, 0, sizeof(Vec4)); */
 
 
 	static const GLchar *vertexShader = GetShader("VertexShader.vs");
 
 	
 
-	/*[]{
-		"#version 450 core  \n"
-		"layout (location = 0) in vec4 position; \n"
-		"layout (location = 1) in vec4 offset; \n"
-		"layout (location = 2) in vec4 color; \n"
-		"                                     \n"
-		"out vec4 vsColor; \n"
-		"void main(void) { \n"
-		"const vec4 colors[3] = vec4[3](vec4(1, 1, 0, 1.0), vec4(0, 1, 1, 1.0), vec4(1, 1, 1, 1.0));\n"
-		"gl_Position = position + offset;\n"
-		"vsColor = colors[gl_VertexID]; \n"
-		"}\n"
-	};
-static const GLchar *tessControl[]{
-		"#version 410 core  \n"
-		"layout (vertices = 3) out; \n"
-		"                                     \n"
-		"void main(void) { \n"
-		"	if(gl_InvocationID == 0){          \n"
-		"		gl_TessLevelInner[0] = 5.0;          \n"
-		"		gl_TessLevelOuter[0] = 5.0;       \n"
-		"		gl_TessLevelOuter[1] = 5.0;       \n"
-		"		gl_TessLevelOuter[2] = 5.0;       \n"
-		"	}          \n"
-		"	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;\n"
-		"}\n"
-	};
-
-	static const char * tcs_source[] =
-	{
-		"#version 450 core                                                                 \n"
-		"                                                                                  \n"
-		"layout (vertices = 3) out;                                                        \n"
-		"                                                                                  \n"
-		"void main(void)                                                                   \n"
-		"{                                                                                 \n"
-		"    if (gl_InvocationID == 0)                                                     \n"
-		"    {                                                                             \n"
-		"        gl_TessLevelInner[0] = 10.0;                                               \n"
-		"        gl_TessLevelOuter[0] = 10.0;                                               \n"
-		"        gl_TessLevelOuter[1] = 10.0;                                               \n"
-		"        gl_TessLevelOuter[2] = 10.0;                                               \n"
-		"    }                                                                             \n"
-		"    gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;     \n"
-		"}                                                                                 \n"
-
-	};
-
-	static const char * tes_source[] =
-	{
-		"#version 450 core                                                                 \n"
-		"                                                                                  \n"
-		"layout (triangles, equal_spacing, cw) in;                                         \n"
-		"                                                                                  \n"
-		"void main(void)                                                                   \n"
-		"{                                                                                 \n"
-		"    gl_Position = (gl_TessCoord.x * gl_in[0].gl_Position) +                       \n"
-		"                  (gl_TessCoord.y * gl_in[1].gl_Position) +                       \n"
-		"                  (gl_TessCoord.z * gl_in[2].gl_Position);                        \n"
-		"}                                                                                 \n"
-	};
-
-	static const char * geo_source[] =
-	{
-		"#version 410 core                                                                 \n"
-		"                                                                                  \n"
-		"layout (triangles) in;                                         \n"
-		"layout (points, max_vertices = 3) out;                                         \n"
-		"                                                                                  \n"
-		"void main(void)                                                                   \n"
-		"{                                                                                 \n"
-		"	int i;\n"
-		"	for(i = 0; i < gl_in.length(); i++){                                                                                 \n"
-		"       gl_Position = gl_in[i].gl_Position;                                                                          \n"
-		"       EmitVertex();                                                                          \n"
-		"	}                                                                                 \n"
-		"}                                                                                 \n"
-	};
-
-	static const GLchar *tessEval[]{
-		"#version 410 core  \n"
-		"layout (triangles, equal_spacing, cw) in; \n"
-		"                                     \n"
-		"void main(void) { \n"
-		"	gl_Position = (gl_TessCoord.x * gl_in[0].gl_Position + gl_TessCoord.y * gl_in[1].gl_Position + gl_TessCoord.z * gl_in[2].gl_Position);   \n"
-		"}\n"
-	};
 	
-	*/
 
 	static const GLchar *fragmentShader = GetShader("FragmentShader.vs");
-		/*[]{
-		"#version 450 core  \n"
-		"  \n"
-		"out vec4 color;  \n"
-		"void main(void) { \n"
-		"color = vec4(sin(gl_FragCoord.x * 0.25) * 0.5 + 0.5, cos(gl_FragCoord.y * 0.25) * 0.5 + 0.5, sin(gl_FragCoord.x * 0.15) + cos(gl_FragCoord.y * 0.15), 1);\n"
-		"}\n"
-	};*/
+
 	program = glCreateProgram();
 
-		vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-		glShaderSource(vertexShaderID, 1, &vertexShader, nullptr);
-		glCompileShader(vertexShaderID);
-		glAttachShader(program, vertexShaderID);
-		glDeleteShader(vertexShaderID);
-
-	/*
-	//tessControlID = glCreateShader(GL_TESS_CONTROL_SHADER);
-	//glShaderSource(tessControlID, 1, tessControl, nullptr);
-	//glCompileShader(tessControlID);
-
-	//tessEvalID = glCreateShader(GL_TESS_EVALUATION_SHADER);
-	//glShaderSource(tessEvalID, 1, tessEval, nullptr);
-	//glCompileShader(tessEvalID);
-
-	//GLuint geoShader = glCreateShader(GL_GEOMETRY_SHADER);
-	//glShaderSource(geoShader, 1, geo_source, nullptr);
-	//glCompileShader(geoShader);
-	*/
+	vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vertexShaderID, 1, &vertexShader, nullptr);
+	glCompileShader(vertexShaderID);
+	glAttachShader(program, vertexShaderID);
+	glDeleteShader(vertexShaderID);
 
 	fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragmentShaderID, 1, &fragmentShader, nullptr);
@@ -386,7 +223,6 @@ static const GLchar *tessControl[]{
 	glDeleteShader(fragmentShaderID);
 
 	glEnable(GL_CULL_FACE);
-	 //glFrontFace(GL_CW);
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
@@ -465,3 +301,145 @@ int main(int argv, char** argc)
 	return 0;
 }
 
+/*const Vec4 cubeData[]{
+
+Vec4(0.25f,  0.25f, -0.25f, 1.0f),
+Vec4(0.25f, -0.25f, -0.25f, 1.0f),
+Vec4(-0.25f, -0.25f, -0.25f, 1.0f),
+
+Vec4(-0.25f, -0.25f, -0.25f, 1.0f),
+Vec4(-0.25f,  0.25f, -0.25f, 1.0f),
+Vec4(0.25f,  0.25f, -0.25f, 1.0f),
+
+Vec4(-0.25f,  0.25f, -0.25f, 1.0f),
+Vec4(-0.25f, -0.25f, -0.25f, 1.0f),
+Vec4(-0.25f, -0.25f,  0.25f, 1.0f),
+
+Vec4(-0.25f, -0.25f,  0.25f, 1.0f),
+Vec4(-0.25f,  0.25f,  0.25f, 1.0f),
+Vec4(-0.25f,  0.25f, -0.25f, 1.0f),
+
+Vec4(0.25f,  0.25f,  0.25f, 1.0f),
+Vec4(0.25f, -0.25f,  0.25f, 1.0f),
+Vec4(0.25f, -0.25f, -0.25f, 1.0f),
+
+Vec4(0.25f, -0.25f, -0.25f, 1.0f),
+Vec4(0.25f,  0.25f, -0.25f, 1.0f),
+Vec4(0.25f,  0.25f,  0.25f, 1.0f),
+
+
+Vec4(-0.25f,  -0.25f, 0.25f, 1.0f),
+Vec4(-0.25f,  -0.25f,  -0.25f, 1.0f),
+Vec4(0.25f,  -0.25f,  -0.25f, 1.0f),
+
+Vec4(0.25f,  -0.25f,  -0.25f, 1.0f),
+Vec4(0.25f,  -0.25f, 0.25f, 1.0f),
+Vec4(-0.25f,  -0.25f, 0.25f, 1.0f),
+
+Vec4( 0.25f,  0.25f, -0.25f, 1.0f),
+Vec4(-0.25f,  0.25f, -0.25f, 1.0f),
+Vec4(-0.25f,  0.25f,  0.25f, 1.0f),
+
+Vec4(-0.25f,  0.25f,  0.25f, 1.0f),
+Vec4(0.25f,  0.25f,  0.25f, 1.0f),
+Vec4(0.25f,  0.25f, -0.25f, 1.0f),
+
+
+Vec4(0.25f, -0.25f, 0.25f, 1.0f),
+Vec4(0.25f,  0.25f, 0.25f, 1.0f),
+Vec4(-0.25f, 0.25f, 0.25f, 1.0f),
+
+Vec4(-0.25f,  0.25f, 0.25f, 1.0f),
+Vec4(-0.25f, -0.25f, 0.25f, 1.0f),
+Vec4(0.25f, -0.25f, 0.25f, 1.0f),
+};*/
+
+/*[]{
+"#version 450 core  \n"
+"layout (location = 0) in vec4 position; \n"
+"layout (location = 1) in vec4 offset; \n"
+"layout (location = 2) in vec4 color; \n"
+"                                     \n"
+"out vec4 vsColor; \n"
+"void main(void) { \n"
+"const vec4 colors[3] = vec4[3](vec4(1, 1, 0, 1.0), vec4(0, 1, 1, 1.0), vec4(1, 1, 1, 1.0));\n"
+"gl_Position = position + offset;\n"
+"vsColor = colors[gl_VertexID]; \n"
+"}\n"
+};
+static const GLchar *tessControl[]{
+"#version 410 core  \n"
+"layout (vertices = 3) out; \n"
+"                                     \n"
+"void main(void) { \n"
+"	if(gl_InvocationID == 0){          \n"
+"		gl_TessLevelInner[0] = 5.0;          \n"
+"		gl_TessLevelOuter[0] = 5.0;       \n"
+"		gl_TessLevelOuter[1] = 5.0;       \n"
+"		gl_TessLevelOuter[2] = 5.0;       \n"
+"	}          \n"
+"	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;\n"
+"}\n"
+};
+
+static const char * tcs_source[] =
+{
+"#version 450 core                                                                 \n"
+"                                                                                  \n"
+"layout (vertices = 3) out;                                                        \n"
+"                                                                                  \n"
+"void main(void)                                                                   \n"
+"{                                                                                 \n"
+"    if (gl_InvocationID == 0)                                                     \n"
+"    {                                                                             \n"
+"        gl_TessLevelInner[0] = 10.0;                                               \n"
+"        gl_TessLevelOuter[0] = 10.0;                                               \n"
+"        gl_TessLevelOuter[1] = 10.0;                                               \n"
+"        gl_TessLevelOuter[2] = 10.0;                                               \n"
+"    }                                                                             \n"
+"    gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;     \n"
+"}                                                                                 \n"
+
+};
+
+static const char * tes_source[] =
+{
+"#version 450 core                                                                 \n"
+"                                                                                  \n"
+"layout (triangles, equal_spacing, cw) in;                                         \n"
+"                                                                                  \n"
+"void main(void)                                                                   \n"
+"{                                                                                 \n"
+"    gl_Position = (gl_TessCoord.x * gl_in[0].gl_Position) +                       \n"
+"                  (gl_TessCoord.y * gl_in[1].gl_Position) +                       \n"
+"                  (gl_TessCoord.z * gl_in[2].gl_Position);                        \n"
+"}                                                                                 \n"
+};
+
+static const char * geo_source[] =
+{
+"#version 410 core                                                                 \n"
+"                                                                                  \n"
+"layout (triangles) in;                                         \n"
+"layout (points, max_vertices = 3) out;                                         \n"
+"                                                                                  \n"
+"void main(void)                                                                   \n"
+"{                                                                                 \n"
+"	int i;\n"
+"	for(i = 0; i < gl_in.length(); i++){                                                                                 \n"
+"       gl_Position = gl_in[i].gl_Position;                                                                          \n"
+"       EmitVertex();                                                                          \n"
+"	}                                                                                 \n"
+"}                                                                                 \n"
+};
+
+static const GLchar *tessEval[]{
+"#version 410 core  \n"
+"layout (triangles, equal_spacing, cw) in; \n"
+"                                     \n"
+"void main(void) { \n"
+"	gl_Position = (gl_TessCoord.x * gl_in[0].gl_Position + gl_TessCoord.y * gl_in[1].gl_Position + gl_TessCoord.z * gl_in[2].gl_Position);   \n"
+"}\n"
+};
+
+*/
