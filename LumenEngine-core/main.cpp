@@ -17,8 +17,34 @@
 #include "Vec4.h"
 #include "Matrix4x4.h"
 #include "LeMath.h"
+#include "Lodepng\lodepng.h"
 
 #include <fstream>
+
+struct Color {
+	uint8_t rgba[4];
+};
+
+struct HeaderInfo {
+	uint32_t width;
+	uint32_t height;
+	union
+	{
+		uint8_t vars[5];
+		struct ExtraInfo {
+			uint8_t bitDepth;
+			uint8_t colorType;
+			uint8_t compressionMethod;
+			uint8_t filterMethod;
+			uint8_t interlaceMethod;
+		};
+	};
+};
+struct Image {
+	HeaderInfo info;
+	
+	Color *colorArray;
+};
 
 struct Vertex {
 	Vec3 pos;
@@ -84,6 +110,71 @@ static GLchar *GetShader(const GLchar *path) {
 	return returnVal;
 }
 
+static Image GetTexture(const GLchar *path) {
+	std::ifstream file(path, std::ios_base::binary);
+
+	if (!file.is_open()) {
+		printf("TextureGotDestruc!");
+		SDLDie("DEATH");
+	}
+
+	char pngStuff[8];
+	file.read(pngStuff, 8);
+	
+	unsigned int length;
+	char identifier[4];
+	const char end[4] = { 'I', 'E', 'N', 'D' };
+	const char hdr[4] = { 'I', 'H', 'D', 'R' };
+	const char plt[4] = { 'P', 'L', 'T', 'E' };
+	const char dat[4] = { 'I', 'D', 'A', 'T' };
+
+	Image image;
+
+	while (!(identifier[0] == end[0] && identifier[1] == end[1] && identifier[2] == end[2] && identifier[3] == end[3])) {
+		file.read((char*)&length, sizeof(unsigned int));
+		file.read(identifier, 4);
+		length = _byteswap_ulong(length);
+
+		if (identifier[0] == 'I' && identifier[1] == 'H' && identifier[2] == 'D' && identifier[3] == 'R') {
+			printf("WE GOT TO IHDR! :D");
+			file.read((char*)&image.info, length);
+			image.info.width = _byteswap_ulong(image.info.width);
+			image.info.height = _byteswap_ulong(image.info.height);
+			uint32_t d;
+			file.read((char*)&d, 4);
+		}
+		else if (identifier[0] == plt[0] && identifier[1] == plt[1] && identifier[2] == plt[2] && identifier[3] == plt[3]) {
+			printf("WE GOT PLTE! :D");
+			char *d = new char[length];
+			file.read(d, length);
+			delete d;
+			d = new char[4];
+			file.read(d, 4);
+			delete d;
+		}
+		else if (identifier[0] == dat[0] && identifier[1] == dat[1] && identifier[2] == dat[2] && identifier[3] == dat[3]) {
+			printf("WE GOT IDAT! :D");
+			char *d = new char[length];
+			file.read(d, length);
+			delete d;
+			d = new char[4];
+			file.read(d, 4);
+			delete d;
+		}
+		else {
+			printf("WE GOT EXTRA DATA YO");
+			char *d = new char[length];
+			file.read(d, length);
+			delete d;
+			d = new char[4];
+			file.read(d, 4);
+			delete d;
+		}
+	}
+
+	return image;
+}
+
 static MeshForNow *GetMesh(const GLchar *path) {
 	std::ifstream input(path, std::ios_base::binary);
 
@@ -98,7 +189,7 @@ static MeshForNow *GetMesh(const GLchar *path) {
 	input.read(nameBuffer, tempInt);
 
 	input.read((char*)&tempInt, sizeof(unsigned int));
-	for (int i = 0; i < tempInt; ++i) {
+	for (unsigned i = 0; i < tempInt; ++i) {
 		unsigned int tempTexNameLen;
 		input.read((char*)&tempTexNameLen, sizeof(unsigned int));
 		input.read(nameBuffer, tempTexNameLen);
@@ -159,11 +250,23 @@ void InitScreen(const char *caption) {
 	glViewport(0, 0, w, h);
 	glClearColor(0.f, 0.5f, 1.f, 1.f);
 }
+
+static void FlipImage(std::vector<uint8_t> &image, unsigned width, unsigned height) {
+	width *= 4;
+	uint8_t *temp = new uint8_t[width];
+	for (unsigned y = 0; y < height / 2; y++) {
+		memcpy(temp, &image[y * width], width);
+		memcpy(&image[y * width], &image[(((height - 1) - y) * width)], width);
+		memcpy(&image[(((height - 1) - y) * width)], temp, width);
+	}
+	delete[] temp;
+}
 GLuint vao;
+GLuint tex;
 
 GLuint CreateProgram() {
 
-	meshYo = GetMesh("../bench.mesh");
+	meshYo = GetMesh("../majornShape.mesh");
 
 	GLuint vertexShaderID;
 	/*GLuint tessControlID;
@@ -181,9 +284,12 @@ GLuint CreateProgram() {
 	//glNamedBufferSubData(bufferName, 0, sizeof(data), data);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uvs));
+
 	/*glVertexArrayAttribBinding(vao, 0, 0);
 	glVertexArrayAttribFormat(vao, 0, 4, GL_FLOAT, GL_FALSE, 0);*/
 	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
 
 	glCreateBuffers(1, &indexBuffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
@@ -199,9 +305,15 @@ GLuint CreateProgram() {
 
 	static const GLchar *vertexShader = GetShader("VertexShader.vs");
 
-	
+	std::vector<uint8_t> image;
+	unsigned width, height;
+	unsigned error = lodepng::decode(image, width, height, "../majorntexture.png");
+	FlipImage(image, width, height);
 
-	
+	glGenTextures(1, &tex);
+	glBindTexture(GL_TEXTURE_2D, tex);
+	glTextureStorage2D(tex, 1, GL_RGBA8, width, height);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, image.data());
 
 	static const GLchar *fragmentShader = GetShader("FragmentShader.vs");
 
@@ -226,6 +338,9 @@ GLuint CreateProgram() {
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
+
+	glUniform1i(glGetUniformLocation(program, "textureObj"), 0);
+	
 
 	return program;
 }
@@ -252,7 +367,7 @@ void Render(Uint32 time) {
 	LeMath::CreatePerspectiveMatrix(50.f, (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.f, &projMatrix);
 	//LeMath::CreateFrustumMatrix(100.f, 100.f, 100.f, 100.f, 0.1f, 1000.f, &projMatrix);
 	//LeMath::CreateOrthoMatrix(200, 200, 200, 200, 0.1f, 1000, &projMatrix);
-	Matrix4x4 posMatrix = LeMath::CreateTranslationMatrix(0, 0, -20) * LeMath::CreateTranslationMatrix(sinf(2.1f * f) * 0.5f, cosf(1.7f * f) * 0.5f, sinf(1.3f * f) * cosf(1.5f * f) * 2.f) * LeMath::CreateRotationMatrix(EAxis::y, secondsish) * LeMath::CreateRotationMatrix(EAxis::x, seconds);
+	Matrix4x4 posMatrix = LeMath::CreateTranslationMatrix(0, -5, -20) * LeMath::CreateRotationMatrix(EAxis::y, secondsish)/* *LeMath::CreateTranslationMatrix(sinf(2.1f * f) * 0.5f, cosf(1.7f * f) * 0.5f, sinf(1.3f * f) * cosf(1.5f * f) * 2.f) * LeMath::CreateRotationMatrix(EAxis::y, secondsish) * LeMath::CreateRotationMatrix(EAxis::x, seconds)*/;
 
 
 

@@ -1,8 +1,11 @@
 #version 450 core
 
-in vec4 fsColor;
+layout (binding = 0) uniform sampler2D textureObj;
+
+in vec2 uv;
+
 out vec4 color;
 
 void main(void){
-    color = fsColor;
+    color = texture2D(textureObj, uv);
 }
