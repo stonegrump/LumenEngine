@@ -142,22 +142,32 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Component_StaticMesh.cpp" />
+    <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Glad\glad.c" />
+    <ClCompile Include="IComponent.cpp" />
     <ClCompile Include="LeMath.cpp" />
     <ClCompile Include="Lodepng\lodepng.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Material.cpp" />
     <ClCompile Include="Matrix3x3.cpp" />
     <ClCompile Include="Matrix4x4.cpp" />
+    <ClCompile Include="Object.cpp" />
     <ClCompile Include="Vec2.cpp" />
     <ClCompile Include="Vec3.cpp" />
     <ClCompile Include="Vec4.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Component_StaticMesh.h" />
+    <ClInclude Include="GameObject.h" />
     <ClInclude Include="Glad\glad.h" />
+    <ClInclude Include="IComponent.h" />
     <ClInclude Include="LeMath.h" />
     <ClInclude Include="Lodepng\lodepng.h" />
+    <ClInclude Include="Material.h" />
     <ClInclude Include="Matrix3x3.h" />
     <ClInclude Include="Matrix4x4.h" />
+    <ClInclude Include="Object.h" />
     <ClInclude Include="Vec2.h" />
     <ClInclude Include="Vec3.h" />
     <ClInclude Include="Vec4.h" />

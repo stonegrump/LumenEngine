@@ -18,6 +18,7 @@
 #include "Matrix4x4.h"
 #include "LeMath.h"
 #include "Lodepng\lodepng.h"
+#include "Component_StaticMesh.h"
 
 #include <fstream>
 
@@ -46,27 +47,7 @@ struct Image {
 	Color *colorArray;
 };
 
-struct Vertex {
-	Vec3 pos;
-	Vec3 norms;
-	Vec2 uvs;
-	Vertex(Vec4 _pos, Vec4 _norms, Vec2 _uvs) : pos(_pos), norms(_norms), uvs(_uvs){}
-	Vertex() {
-		
-	}
-};
 
-struct MeshForNow {
-	unsigned int numOfVerts;
-	Vertex *vertices;
-	unsigned int numOfIndices;
-	unsigned int *triIndices;
-
-	~MeshForNow() {
-		delete[] vertices;
-		delete[] triIndices;
-	}
-};
 
 static const int SCREEN_FULLSCREEN = 0;
 static const int SCREEN_WIDTH = 1280;
@@ -74,7 +55,7 @@ static const int SCREEN_HEIGHT = 720;
 static SDL_Window *window = nullptr;
 static SDL_GLContext mainContext;
 
-static MeshForNow *meshYo = nullptr;
+static Mesh *meshYo = nullptr;
 
 static GLuint mainProgram;
 
@@ -175,39 +156,7 @@ static Image GetTexture(const GLchar *path) {
 	return image;
 }
 
-static MeshForNow *GetMesh(const GLchar *path) {
-	std::ifstream input(path, std::ios_base::binary);
 
-	if (!input.is_open())
-		return nullptr;
-
-	MeshForNow *returnMesh = new MeshForNow();
-
-	unsigned int tempInt = 0;
-	input.read((char*)&tempInt, sizeof(unsigned int));
-	char nameBuffer[256];
-	input.read(nameBuffer, tempInt);
-
-	input.read((char*)&tempInt, sizeof(unsigned int));
-	for (unsigned i = 0; i < tempInt; ++i) {
-		unsigned int tempTexNameLen;
-		input.read((char*)&tempTexNameLen, sizeof(unsigned int));
-		input.read(nameBuffer, tempTexNameLen);
-	}
-
-	input.read((char*)&tempInt, sizeof(unsigned int));
-	returnMesh->vertices = new Vertex[tempInt];
-	input.read((char*)returnMesh->vertices, sizeof(Vertex) * tempInt);
-	returnMesh->numOfVerts = tempInt;
-
-	input.read((char*)&tempInt, sizeof(unsigned int));
-	tempInt *= 3;
-	returnMesh->triIndices = new unsigned int[tempInt];
-	input.read((char*)returnMesh->triIndices, sizeof(unsigned int) * tempInt);
-	returnMesh->numOfIndices = tempInt;
-
-	return returnMesh;
-}
 
 void InitScreen(const char *caption) {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -265,8 +214,8 @@ GLuint vao;
 GLuint tex;
 
 GLuint CreateProgram() {
-
-	meshYo = GetMesh("../majornShape.mesh");
+	Component_StaticMesh comp;
+	meshYo = comp.GetMesh("../majornShape.mesh");
 
 	GLuint vertexShaderID;
 	/*GLuint tessControlID;
